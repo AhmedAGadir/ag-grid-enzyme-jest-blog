@@ -34,8 +34,6 @@ describe('Grid Actions Panel', () => {
 
     ensureGridApiHasBeenSet(wrapper)
       .then(() => done());
-
-    // setTimeout(done, 5000);
   });
 
   afterEach(() => {
@@ -46,21 +44,24 @@ describe('Grid Actions Panel', () => {
   })
 
   it('renders without crashing', () => {
-    // console.log(wrapper.debug());
-    // expect(wrapper).toBeTruthy();
+    expect(wrapper).toBeTruthy();
     expect(wrapper.find('.ag-theme-alpine').exists()).toBe(true);
-    // expect(wrapper.find('.ag-row').exists()).toBe(true);
   });
 
-  it('renders test rows', () => {
-    wrapper.setState({ rowData: testData }, () => {
-      // console.log(wrapper.debug())
-      // console.log(wrapper.html());
-      expect(wrapper.find('.ag-row').length).toEqual(1);
-      // expect(wrapper.find('.ag-row').length).not.toEqual(0);
-      // expect(wrapper.find('.ag-row').length).toEqual(0);
-    });
-  });
+  it('renders rows', () => {
+    expect(wrapper.find('.ag-row').exists()).toBe(true);
+    expect(wrapper.find('.ag-row').length).not.toEqual(0);
+  })
+
+  // it('renders test rows', () => {
+  //   wrapper.setState({ rowData: testData }, () => {
+  //     // console.log(wrapper.debug())
+  //     // console.log(wrapper.html());
+  //     expect(wrapper.find('.ag-row').length).not.toEqual(0);
+  //     // expect(wrapper.find('.ag-row').length).not.toEqual(0);
+  //     // expect(wrapper.find('.ag-row').length).toEqual(0);
+  //   });
+  // });
 
   // it('selects all rows', (done) => {
   //   console.log('wrapper.find("#selectAll")', wrapper.find('#selectAll'))
