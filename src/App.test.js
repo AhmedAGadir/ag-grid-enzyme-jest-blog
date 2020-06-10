@@ -49,8 +49,8 @@ describe('Grid Actions Panel', () => {
   });
 
   it('renders rows', () => {
-    expect(wrapper.find('.ag-row').exists()).toBe(true);
-    expect(wrapper.find('.ag-row').length).not.toEqual(0);
+    expect(wrapper.find('.ag-row').exists()).toBe(true); // fails
+    expect(wrapper.find('.ag-row').length).not.toEqual(0); // fails
   })
 
   // it('renders test rows', () => {
