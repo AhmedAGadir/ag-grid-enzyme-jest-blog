@@ -1,7 +1,7 @@
 import React from 'react';
 import App from './App';
 import { AgGridReact } from 'ag-grid-react';
-import { mount, shallow } from 'enzyme';
+import { mount } from 'enzyme';
 
 jest.setTimeout(10000);
 
@@ -12,15 +12,31 @@ const ensureGridApiHasBeenSet = (component) => {
   return new Promise(function (resolve, reject) {
     (function waitForGridReady() {
       if (component.instance().gridApi) {
-        return resolve();
+        resolve(component);
       }
       setTimeout(waitForGridReady, 100);
     })();
   });
 };
 
+const renderTestRows = (component, rowData) => {
+  return new Promise(function (resolve, reject) {
+    console.log('setting row data')
+    component.setState({ rowData }, () => {
+      component.update();
+      resolve();
+    });
+  })
+}
+
 let wrapper = null;
 let agGridReact = null;
+
+let testData = [
+  { make: 'Alfa Romeo', model: 'A', price: 10000 },
+  { make: 'BMW', model: 'B', price: 20000 },
+  { make: 'Citroen', model: 'C', price: 30000 }
+];
 
 describe('Grid Actions Panel', () => {
 
@@ -29,6 +45,7 @@ describe('Grid Actions Panel', () => {
     agGridReact = wrapper.find(AgGridReact).instance();
 
     ensureGridApiHasBeenSet(wrapper)
+      // .then((wrapper) => renderTestRows(wrapper, testData))
       .then(() => done());
   });
 
@@ -42,21 +59,23 @@ describe('Grid Actions Panel', () => {
     expect(wrapper.find('.actions-panel').exists()).toBeTruthy();
   });
 
-  it('renders test rows', (done) => {
-    let testData = [{ make: 'test', model: 'test1', price: 'test2' }];
-
-    wrapper.setState({ rowData: testData }, () => {
-      wrapper.update();
-      expect(wrapper.render().find('.ag-center-cols-container .ag-row').length).toEqual(1);
-      done();
-    });
+  it('renders test rows', () => {
+    // expect(wrapper.render().find('.ag-center-cols-container .ag-row').length).toEqual(3);
   });
 
   // it('selects all rows', (done) => {
   //   console.log('wrapper.find("#selectAll")', wrapper.find('#selectAll'))
   //   wrapper.find('#selectAll').simulate('click');
 
-  //   setTimeout(() => {
+
+
+  //     // approach 1) by querying the DOM
+  // expect(wrapper.find('.ag-row.ag-row-selected').length).toEqual(testData.length);
+  //     // approach 2) using the grid API
+  // expect(agGridReact.api.getSelectedRows().length).toEqual(0);
+
+
+
 
 
   //     // approach 1) by querying the DOM
@@ -69,8 +88,6 @@ describe('Grid Actions Panel', () => {
 
 
   //     done();
-  //   }
-  //     , 1000);
 
   // });
 
