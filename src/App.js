@@ -6,8 +6,6 @@ import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
 import './App.css'
 
-import HelloWorld from './HelloWorld';
-
 class App extends Component {
   constructor(props) {
     super(props);
@@ -88,7 +86,6 @@ class App extends Component {
   render() {
     return (
       <div>
-        <HelloWorld />
         <div className="actions-panel">
           <button id="selectAll" onClick={() => this.selectAllHandler(true)}>Select All Rows</button>
           <button id="deSelectAll" onClick={() => this.selectAllHandler(false)}>Deselect All Rows</button>
