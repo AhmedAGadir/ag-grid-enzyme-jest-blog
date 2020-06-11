@@ -3,25 +3,21 @@ import App from './App';
 import { AgGridReact } from 'ag-grid-react';
 import { mount } from 'enzyme';
 
+// increase retry time? 
 jest.setTimeout(10000);
 
 // ignore license errors
 jest.spyOn(console, 'error').mockImplementation(() => { });
 
-const ensureGridApiHasBeenSet = (component) => {
-  return new Promise(function (resolve, reject) {
-    (function waitForGridReady() {
-      if (component.instance().gridApi) {
-        resolve(component);
-      }
-      setTimeout(waitForGridReady, 100);
-    })();
-  });
-};
+const rowData = [
+  { make: 'Alfa Romeo', model: 'A', price: 10000 },
+  { make: 'BMW', model: 'B', price: 20000 },
+  { make: 'Citroen', model: 'C', price: 30000 }
+];
 
+// loading in mock data so that we've decoupled our tests from our endpoint 
 const renderTestRows = (component, rowData) => {
   return new Promise(function (resolve, reject) {
-    console.log('setting row data')
     component.setState({ rowData }, () => {
       component.update();
       resolve();
@@ -29,14 +25,19 @@ const renderTestRows = (component, rowData) => {
   })
 }
 
+const ensureGridApiHasBeenSet = (component) => {
+  return new Promise(function (resolve, reject) {
+    (function waitForGridReady() {
+      if (component.instance().gridApi) {
+        return resolve(component);
+      }
+      setTimeout(waitForGridReady, 100);
+    })();
+  });
+};
+
 let wrapper = null;
 let agGridReact = null;
-
-let testData = [
-  { make: 'Alfa Romeo', model: 'A', price: 10000 },
-  { make: 'BMW', model: 'B', price: 20000 },
-  { make: 'Citroen', model: 'C', price: 30000 }
-];
 
 describe('Grid Actions Panel', () => {
 
@@ -45,7 +46,7 @@ describe('Grid Actions Panel', () => {
     agGridReact = wrapper.find(AgGridReact).instance();
 
     ensureGridApiHasBeenSet(wrapper)
-      // .then((wrapper) => renderTestRows(wrapper, testData))
+      .then((wrapper) => renderTestRows(wrapper, rowData))
       .then(() => done());
   });
 
@@ -60,36 +61,25 @@ describe('Grid Actions Panel', () => {
   });
 
   it('renders test rows', () => {
-    // expect(wrapper.render().find('.ag-center-cols-container .ag-row').length).toEqual(3);
+    // 1) By querying the DOM
+    // note: if you want to query the grid you'll need to use wrapper.render().find(); 
+    // im guessing some magic happens when render is executed
+    expect(wrapper.render().find('.ag-center-cols-container .ag-row').length).toEqual(3);
+    // 2) Using ag-Grid's API
+    let rowCount = 0;
+    agGridReact.api.forEachNode(() => rowCount++);
+    expect(rowCount).toEqual(3);
   });
 
-  // it('selects all rows', (done) => {
-  //   console.log('wrapper.find("#selectAll")', wrapper.find('#selectAll'))
-  //   wrapper.find('#selectAll').simulate('click');
+  it('selects all rows', () => {
+    wrapper.find('#selectAll').simulate('click');
 
+    // approach 1) by querying the DOM
+    expect(wrapper.render().find('.ag-center-cols-container .ag-row.ag-row-selected').length).toEqual(rowData.length);
+    // approach 2) using the grid API
+    expect(agGridReact.api.getSelectedRows().length).toEqual(rowData.length);
 
-
-  //     // approach 1) by querying the DOM
-  // expect(wrapper.find('.ag-row.ag-row-selected').length).toEqual(testData.length);
-  //     // approach 2) using the grid API
-  // expect(agGridReact.api.getSelectedRows().length).toEqual(0);
-
-
-
-
-
-  //     // approach 1) by querying the DOM
-  //     expect(wrapper.find('.ag-row').length).toBe(testData.length);
-  //     // expect(wrapper.find('.ag-row.ag-row-selected')).toEqual([]);
-  //     // expect(wrapper.find('.ag-row:not(.ag-row-selected)').length).toEqual(0);
-  //     // expect(wrapper.find('.ag-row.ag-row-selected').length).toEqual(testData.length);
-  //     // approach 2) using the grid API
-  //     // expect(agGridReact.api.getSelectedRows().length).toEqual(0);
-
-
-  //     done();
-
-  // });
+  });
 
 
   // it('selects all rows 2', () => {
