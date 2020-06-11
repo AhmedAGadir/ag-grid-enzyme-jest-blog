@@ -21,15 +21,11 @@ const ensureGridApiHasBeenSet = (component) => {
 
 let wrapper = null;
 let agGridReact = null;
-let testData = [{ make: 'test', model: 'test1', price: 'test2' }];
 
 describe('Grid Actions Panel', () => {
 
   beforeEach((done) => {
     wrapper = mount(<App />);
-    // wrapper = shallow(<App />);
-    // wrapper.setState({ rowData: testData });
-    // wrapper.update();
     agGridReact = wrapper.find(AgGridReact).instance();
 
     ensureGridApiHasBeenSet(wrapper)
@@ -37,31 +33,24 @@ describe('Grid Actions Panel', () => {
   });
 
   afterEach(() => {
-    wrapper.setState({ rowData: null })
     wrapper.unmount();
     wrapper = null;
     agGridReact = null;
   })
 
   it('renders without crashing', () => {
-    expect(wrapper).toBeTruthy();
-    expect(wrapper.find('.ag-theme-alpine').exists()).toBe(true);
+    expect(wrapper.find('.actions-panel').exists()).toBeTruthy();
   });
 
-  it('renders rows', () => {
-    expect(wrapper.find('.ag-row').exists()).toBe(true); // fails
-    expect(wrapper.find('.ag-row').length).not.toEqual(0); // fails
-  })
+  it('renders test rows', (done) => {
+    let testData = [{ make: 'test', model: 'test1', price: 'test2' }];
 
-  // it('renders test rows', () => {
-  //   wrapper.setState({ rowData: testData }, () => {
-  //     // console.log(wrapper.debug())
-  //     // console.log(wrapper.html());
-  //     expect(wrapper.find('.ag-row').length).not.toEqual(0);
-  //     // expect(wrapper.find('.ag-row').length).not.toEqual(0);
-  //     // expect(wrapper.find('.ag-row').length).toEqual(0);
-  //   });
-  // });
+    wrapper.setState({ rowData: testData }, () => {
+      wrapper.update();
+      expect(wrapper.render().find('.ag-center-cols-container .ag-row').length).toEqual(1);
+      done();
+    });
+  });
 
   // it('selects all rows', (done) => {
   //   console.log('wrapper.find("#selectAll")', wrapper.find('#selectAll'))
