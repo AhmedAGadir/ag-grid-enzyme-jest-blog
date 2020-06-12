@@ -46,7 +46,7 @@ describe('Grid Actions Panel', () => {
     agGridReact = wrapper.find(AgGridReact).instance();
 
     ensureGridApiHasBeenSet(wrapper)
-      .then((wrapper) => setRowData(wrapper, testData))
+      .then(() => setRowData(wrapper, testData))
       .then(() => done());
   });
 
@@ -67,8 +67,22 @@ describe('Grid Actions Panel', () => {
 
     // *** note: if you want to query the grid you'll need to use wrapper.render().find(); 
     // im guessing some magic happens when render is executed ***
+    // https://github.com/enzymejs/enzyme/issues/1233
     const gridRows = wrapper.render().find('.ag-center-cols-container .ag-row');
     expect(gridRows.length).toEqual(testData.length);
+
+    let testDataKeys = Object.keys(testData)
+    for (let i = 0; i < gridRows.length; i++) {
+      for (let j = 0; j < testDataKeys.length; j++) {
+        let cellText = gridRows[i].children;
+        // let column = gridRows[i].children[0].attribs['col-id'];
+        console.log('=======', i, j)
+        console.log(cellText);
+        console.log('=======', i, j)
+      }
+      // expect(cellText).toEqual(filterValue)
+    }
+
     // 2) Using ag-Grid's API
     let rowCount = 0;
     agGridReact.api.forEachNode(() => rowCount++);
