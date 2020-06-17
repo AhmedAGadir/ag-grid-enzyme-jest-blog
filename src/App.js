@@ -32,7 +32,7 @@ class App extends Component {
     this.gridApi = params.api;
     this.columnApi = params.columnApi;
 
-    this.gridApi.sizeColumnsToFit();
+    params.api.sizeColumnsToFit();
 
     fetch('https://raw.githubusercontent.com/ag-grid/ag-grid/master/grid-packages/ag-grid-docs/src/sample-data/rowData.json')
       .then(result => result.json())
@@ -66,26 +66,9 @@ class App extends Component {
     this.gridApi.setSortModel([{ colId, sort }]);
   }
 
-  rowGroupHandler = (colId, add) => {
-    if (add) {
-      this.columnApi.addRowGroupColumn(colId)
-    } else {
-      this.columnApi.removeRowGroupColumn(colId);
-    }
-  }
-
-  hideColumnHandler = (colId, hide) => {
-    if (hide) {
-      this.columnApi.setColumnVisible(colId, false);
-    } else {
-      this.columnApi.setColumnVisible(colId, true);
-    }
-    this.gridApi.sizeColumnsToFit();
-  }
-
   render() {
     return (
-      <div>
+      <div className="app-component">
         <div className="actions-panel">
           <button id="selectAll" onClick={() => this.selectAllHandler(true)}>Select All Rows</button>
           <button id="deSelectAll" onClick={() => this.selectAllHandler(false)}>Deselect All Rows</button>
@@ -94,10 +77,6 @@ class App extends Component {
           <button id="sortByPriceAsc" onClick={() => this.sortHandler('price', 'asc')}>Sort By Price (asc)</button>
           <button id="sortByPriceDesc" onClick={() => this.sortHandler('price', 'desc')}>Sort By Price (desc)</button>
           <button id="removeSort" onClick={() => this.sortHandler(null)}>Remove All Sorting</button>
-          <button id="groupByModel" onClick={() => this.rowGroupHandler('model', true)}>Group By Model</button>
-          <button id="removeGrouping" onClick={() => this.rowGroupHandler('model', false)}>Ungroup Model</button>
-          <button id="hidePriceColumn" onClick={() => this.hideColumnHandler('price', true)}>Hide Price Column</button>
-          <button id="showPriceColumn" onClick={() => this.hideColumnHandler('price', false)}>Show Price Column</button>
         </div>
         <div
           className="ag-theme-alpine"
@@ -108,7 +87,9 @@ class App extends Component {
             columnDefs={this.state.columnDefs}
             defaultColDef={this.state.defaultColDef}
             rowData={this.state.rowData}
-            onGridReady={this.onGridReady} />
+            onGridReady={this.onGridReady}
+            ensureDomOrder
+            suppressColumnVirtualisation />
         </div>
       </div >
     );

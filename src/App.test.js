@@ -3,8 +3,7 @@ import App from './App';
 import { AgGridReact } from 'ag-grid-react';
 import { mount } from 'enzyme';
 
-// increase retry time? 
-jest.setTimeout(10000);
+// jest.setTimeout(10000);
 
 // ignore license errors
 jest.spyOn(console, 'error').mockImplementation(() => { });
@@ -15,7 +14,6 @@ const testData = [
   { make: 'Citroen', model: 'C', price: 30000 }
 ];
 
-// loading in mock data so that we've decoupled our tests from our endpoint 
 const setRowData = (wrapper, rowData) => {
   return new Promise(function (resolve, reject) {
     wrapper.setState({ rowData }, () => {
@@ -29,17 +27,20 @@ const ensureGridApiHasBeenSet = (wrapper) => {
   return new Promise(function (resolve, reject) {
     (function waitForGridReady() {
       if (wrapper.instance().gridApi) {
-        return resolve(wrapper);
+        resolve(wrapper);
+        return;
       }
       setTimeout(waitForGridReady, 100);
     })();
   });
 };
 
-
 describe('Grid Actions Panel', () => {
   let wrapper = null;
   let agGridReact = null;
+
+  const testFilterColId = 'make';
+  const testFilterValue = 'Alfa Romeo';
 
   beforeEach((done) => {
     wrapper = mount(<App />);
@@ -57,36 +58,32 @@ describe('Grid Actions Panel', () => {
   })
 
   it('renders without crashing', () => {
-    expect(wrapper.find('.actions-panel').exists()).toBeTruthy();
+    expect(wrapper.find('.app-component>.actions-panel').exists()).toBeTruthy();
+    expect(wrapper.find('.app-component>.ag-theme-alpine').exists()).toBeTruthy();
   });
 
   it('renders test rows', () => {
     // 1) Querying the DOM
-    // querying the DOM only works since were using autoHeight, i.e. there is no row virtualisation
-    // if you are not using autoheight then we recommend you use the grids API's in your assertions 
-
-    // *** note: if you want to query the grid you'll need to use wrapper.render().find(); 
-    // im guessing some magic happens when render is executed ***
+    // if you want to query the grid you'll need to use wrapper.render().find(); // dont know why
     // https://github.com/enzymejs/enzyme/issues/1233
     const gridRows = wrapper.render().find('.ag-center-cols-container .ag-row');
-    expect(gridRows.length).toEqual(testData.length);
-
-    let testDataKeys = Object.keys(testData)
+    const columns = wrapper.render().find('.ag-header-cell');
     for (let i = 0; i < gridRows.length; i++) {
-      for (let j = 0; j < testDataKeys.length; j++) {
-        let cellText = gridRows[i].children;
-        // let column = gridRows[i].children[0].attribs['col-id'];
-        console.log('=======', i, j)
-        console.log(cellText);
-        console.log('=======', i, j)
+      for (let j = 0; j < columns.length; j++) {
+        const colId = gridRows[i].children[j].attribs['col-id'];
+        const cellText = gridRows[i].children[j].children[0].data;
+        const testValue = testData[i][colId].toString();
+        expect(cellText).toEqual(testValue);
       }
-      // expect(cellText).toEqual(filterValue)
     }
-
     // 2) Using ag-Grid's API
-    let rowCount = 0;
-    agGridReact.api.forEachNode(() => rowCount++);
-    expect(rowCount).toEqual(testData.length);
+    agGridReact.api.forEachNode((node, nodeInd) => {
+      Object.keys(node.data).forEach(colId => {
+        const cellValue = node.data[colId];
+        const testValue = testData[nodeInd][colId];
+        expect(cellValue).toEqual(testValue);
+      })
+    });
   });
 
   it('selects all rows', () => {
@@ -98,7 +95,6 @@ describe('Grid Actions Panel', () => {
     // 2) using the grid API
     const selectedRowsAPI = agGridReact.api.getSelectedRows();
     expect(selectedRowsAPI.length).toEqual(testData.length);
-
   });
 
   it('deselects all rows', () => {
@@ -106,64 +102,83 @@ describe('Grid Actions Panel', () => {
     wrapper.find('#deSelectAll').simulate('click');
 
     // 1) querying the DOM
-    const selectedRowsDOM = wrapper.render().find('.ag-center-cols-container .ag-row:not(.ag-row-selected)');
-    expect(selectedRowsDOM.length).toEqual(testData.length);
+    const unselectedRowsDOM = wrapper.render().find('.ag-center-cols-container .ag-row:not(.ag-row-selected)');
+    expect(unselectedRowsDOM.length).toEqual(testData.length);
     // 2) using the grid API
     const selectedRowsAPI = agGridReact.api.getSelectedRows();
     expect(selectedRowsAPI.length).toEqual(0);
   });
 
-  it('handles filtering', () => {
-    let filterColId = 'make';
-    let filterValue = 'Alfa Romeo';
-    // simulating the filter button click will not work here 
-    // because our button hard codes the params ('make','Porsche') to the filter handler
-    wrapper.instance().filterHandler(filterColId, filterValue);
+  it(`filters by ${testFilterColId} column, value: ${testFilterValue}`, () => {
+    // simulating the filter button click will not work here since our button hard codes the params ('make','Porsche') to the filter handler
+    wrapper.instance().filterHandler(testFilterColId, testFilterValue);
 
     // 1) querying the DOM
-    expect(wrapper.render().find('.ag-header-cell-filtered').length).toEqual(1);
-    // wrapper.render().find().forEach does not work for some reason
-    // wrapper.find().forEach does work
-    let filteredCells = wrapper.render().find(`.ag-center-cols-container .ag-cell[col-id="${filterColId}"]`)
+    const filteredCells = wrapper.render().find(`.ag-center-cols-container .ag-cell[col-id="${testFilterColId}"]`)
     for (let i = 0; i < filteredCells.length; i++) {
-      let cellText = filteredCells[i].children[0].data;
-      expect(cellText).toEqual(filterValue)
+      const cellText = filteredCells[i].children[0].data;
+      expect(cellText).toEqual(testFilterValue)
     }
-
     // 2) using the grid API
     agGridReact.api.forEachNodeAfterFilter(node => {
-      expect(node.data[filterColId]).toEqual(filterValue);
+      expect(node.data[testFilterColId]).toEqual(testFilterValue);
     });
   });
 
   it('clears filters', () => {
-    let filterColId = 'make';
-    let filterValue = 'Alfa Romeo';
-    wrapper.instance().filterHandler(filterColId, filterValue);
-
+    wrapper.instance().filterHandler(testFilterColId, testFilterValue);
     wrapper.find('#removeFilters').simulate('click');
 
     // 1) querying the DOM
-    // wrapper.render().find().exists() does not work for some reason
-    // wrapper.find().exists() does work
+    // grid displays a filter icon in columns that are currently filtering
     expect(wrapper.render().find('.ag-header-cell-filtered').length).toEqual(0);
-
     // 2) using the grid API
-    let filterModel = agGridReact.api.getFilterModel();
+    const filterModel = agGridReact.api.getFilterModel();
     expect(Object.keys(filterModel).length).toEqual(0);
   })
 
+  it('Sorts by Price: ascending', () => {
+    const sortedAscTestData = testData.sort((a, b) => a.price - b.price);
+    wrapper.find('#sortByPriceAsc').simulate('click');
+
+    // 1) querying the DOM
+    const gridRows = wrapper.render().find('.ag-center-cols-container .ag-row');
+    for (let i = 0; i < gridRows.length; i++) {
+      const cellText = gridRows[i].children[2].children[0].data;
+      const testValue = testData[i]['price'].toString();
+      expect(cellText).toEqual(testValue);
+    }
+    // 2) using the grid API
+    agGridReact.api.forEachNodeAfterFilterAndSort((node, ind) => {
+      expect(node.data.price).toEqual(sortedAscTestData[ind].price);
+    });
+  })
+
+  it('Sorts by Price: descending', () => {
+    const sortedDescTestData = testData.sort((a, b) => b.price - a.price);
+    wrapper.find('#sortByPriceDesc').simulate('click');
+
+    // 1) querying the DOM
+    const gridRows = wrapper.render().find('.ag-center-cols-container .ag-row');
+    for (let i = 0; i < gridRows.length; i++) {
+      const cellText = gridRows[i].children[2].children[0].data;
+      const testValue = testData[i]['price'].toString();
+      expect(cellText).toEqual(testValue);
+    }
+    // 2) using the grid API
+    agGridReact.api.forEachNodeAfterFilterAndSort((node, ind) => {
+      expect(node.data.price).toEqual(sortedDescTestData[ind].price);
+    });
+  })
+
+  it('Removes all sorting', () => {
+    wrapper.find('#removeSort').simulate('click');
+
+    // 1) querying the DOM
+    const columns = wrapper.render().find('.ag-header-cell');
+    expect(wrapper.render().find('.ag-header-cell-sorted-none').length).toEqual(columns.length);
+    // 2) using the grid API
+    const sortModel = agGridReact.api.getSortModel();
+    expect(Object.keys(sortModel).length).toEqual(0);
+  })
 })
-
-
-{/* <button id="selectAll" onClick={() => this.selectAllHandler(true)}>Select All Rows</button>
-<button id="deSelectAll" onClick={() => this.selectAllHandler(false)}>Deselect All Rows</button>
-<button id="filterByPorsche" onClick={() => this.filterHandler('make', 'Porsche')}>Filter By Porsche</button>
-<button id="removeFilters" onClick={() => this.filterHandler(null, null)}>Remove All Filters</button>
-<button id="sortByPriceAsc" onClick={() => this.sortHandler('price', 'asc')}>Sort By Price (asc)</button>
-<button id="sortByPriceDesc" onClick={() => this.sortHandler('price', 'desc')}>Sort By Price (desc)</button>
-<button id="removeSort" onClick={() => this.sortHandler(null)}>Remove All Sorting</button>
-<button id="groupByModel" onClick={() => this.rowGroupHandler('model', true)}>Group By Model</button>
-<button id="removeGrouping" onClick={() => this.rowGroupHandler('model', false)}>Ungroup Model</button>
-<button id="hidePriceColumn" onClick={() => this.hideColumnHandler('price', true)}>Hide Price Column</button>
-<button id="showPriceColumn" onClick={() => this.hideColumnHandler('price', false)}>Show Price Column</button> */}
