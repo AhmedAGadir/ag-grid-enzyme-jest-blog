@@ -3,8 +3,6 @@ import App from './App';
 import { AgGridReact } from 'ag-grid-react';
 import { mount } from 'enzyme';
 
-// jest.setTimeout(10000);
-
 // ignore license errors
 jest.spyOn(console, 'error').mockImplementation(() => { });
 
@@ -64,7 +62,7 @@ describe('Grid Actions Panel', () => {
 
   it('renders test rows', () => {
     // 1) Querying the DOM
-    // if you want to query the grid you'll need to use wrapper.render().find(); // dont know why
+    // if you want to query the grid you'll need to use wrapper.render().find();
     // https://github.com/enzymejs/enzyme/issues/1233
     const gridRows = wrapper.render().find('.ag-center-cols-container .ag-row');
     const columns = wrapper.render().find('.ag-header-cell');
@@ -172,6 +170,8 @@ describe('Grid Actions Panel', () => {
   })
 
   it('Removes all sorting', () => {
+    wrapper.find('#sortByPriceAsc').simulate('click');
+
     wrapper.find('#removeSort').simulate('click');
 
     // 1) querying the DOM
