@@ -107,7 +107,7 @@ describe('Grid Actions Panel', () => {
   });
 
   it(`filters "make" column by "Alfa Romeo"`, () => {
-    wrapper.instance().filterHandler("make", "Alfa Romeo");
+    wrapper.instance().filterBtnHandler("make", "Alfa Romeo");
 
     // 1) querying JSDOM
     const filteredCells = wrapper.render().find(`.ag-center-cols-container .ag-cell[col-id="make"]`)
@@ -122,7 +122,7 @@ describe('Grid Actions Panel', () => {
   });
 
   it('clears filters', () => {
-    wrapper.instance().filterHandler("make", "Alfa Romeo");
+    wrapper.instance().filterBtnHandler("make", "Alfa Romeo");
     wrapper.find('#removeFilters').simulate('click');
 
     // 1) querying JSDOM

@@ -40,7 +40,7 @@ class App extends Component {
       .catch(err => console.log(err));
   };
 
-  selectAllHandler = bool => {
+  selectAllBtnHandler = bool => {
     if (bool) {
       this.gridApi.selectAll();
     } else {
@@ -48,7 +48,7 @@ class App extends Component {
     }
   }
 
-  filterHandler = (colId, value) => {
+  filterBtnHandler = (colId, value) => {
     if (!colId && !value) {
       this.gridApi.setFilterModel(null);
       return;
@@ -58,7 +58,7 @@ class App extends Component {
     this.gridApi.onFilterChanged();
   }
 
-  sortHandler = (colId, sort) => {
+  sortBtnHandler = (colId, sort) => {
     if (!colId && !sort) {
       this.gridApi.setSortModel(null);
       return;
@@ -70,13 +70,13 @@ class App extends Component {
     return (
       <div className="app-component">
         <div className="actions-panel">
-          <button id="selectAll" onClick={() => this.selectAllHandler(true)}>Select All Rows</button>
-          <button id="deSelectAll" onClick={() => this.selectAllHandler(false)}>Deselect All Rows</button>
-          <button id="filterByPorsche" onClick={() => this.filterHandler('make', 'Porsche')}>Filter By Porsche</button>
-          <button id="removeFilters" onClick={() => this.filterHandler(null, null)}>Remove All Filters</button>
-          <button id="sortByPriceAsc" onClick={() => this.sortHandler('price', 'asc')}>Sort By Price (asc)</button>
-          <button id="sortByPriceDesc" onClick={() => this.sortHandler('price', 'desc')}>Sort By Price (desc)</button>
-          <button id="removeSort" onClick={() => this.sortHandler(null)}>Remove All Sorting</button>
+          <button id="selectAll" onClick={() => this.selectAllBtnHandler(true)}>Select All Rows</button>
+          <button id="deSelectAll" onClick={() => this.selectAllBtnHandler(false)}>Deselect All Rows</button>
+          <button id="filterByPorsche" onClick={() => this.filterBtnHandler('make', 'Porsche')}>Filter By Porsche</button>
+          <button id="removeFilters" onClick={() => this.filterBtnHandler(null, null)}>Remove All Filters</button>
+          <button id="sortByPriceAsc" onClick={() => this.sortBtnHandler('price', 'asc')}>Sort By Price (asc)</button>
+          <button id="sortByPriceDesc" onClick={() => this.sortBtnHandler('price', 'desc')}>Sort By Price (desc)</button>
+          <button id="removeSort" onClick={() => this.sortBtnHandler(null)}>Remove All Sorting</button>
         </div>
         <div
           className="ag-theme-alpine"
