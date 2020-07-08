@@ -5,6 +5,8 @@ import { mount } from 'enzyme';
 
 // ignore license errors
 jest.spyOn(console, 'error').mockImplementation(() => { });
+// grid warnings?
+jest.spyOn(console, 'warn').mockImplementation(() => { });
 
 const testData = [
   { make: 'Alfa Romeo', model: 'A', price: 10000 },
@@ -37,9 +39,6 @@ describe('Grid Actions Panel', () => {
   let wrapper = null;
   let agGridReact = null;
 
-  const testFilterColId = 'make';
-  const testFilterValue = 'Alfa Romeo';
-
   beforeEach((done) => {
     wrapper = mount(<App />);
     agGridReact = wrapper.find(AgGridReact).instance();
@@ -61,7 +60,7 @@ describe('Grid Actions Panel', () => {
   });
 
   it('renders test rows', () => {
-    // 1) Querying the DOM
+    // 1) Querying JSDOM
     // if you want to query the grid you'll need to use wrapper.render().find();
     // https://github.com/enzymejs/enzyme/issues/1233
     const gridRows = wrapper.render().find('.ag-center-cols-container .ag-row');
@@ -87,7 +86,7 @@ describe('Grid Actions Panel', () => {
   it('selects all rows', () => {
     wrapper.find('#selectAll').simulate('click');
 
-    // 1) querying the DOM
+    // 1) querying JSDOM
     const selectedRowsDOM = wrapper.render().find('.ag-center-cols-container .ag-row.ag-row-selected');
     expect(selectedRowsDOM.length).toEqual(testData.length);
     // 2) using the grid API
@@ -99,7 +98,7 @@ describe('Grid Actions Panel', () => {
     agGridReact.api.selectAll();
     wrapper.find('#deSelectAll').simulate('click');
 
-    // 1) querying the DOM
+    // 1) querying JSDOM
     const unselectedRowsDOM = wrapper.render().find('.ag-center-cols-container .ag-row:not(.ag-row-selected)');
     expect(unselectedRowsDOM.length).toEqual(testData.length);
     // 2) using the grid API
@@ -107,27 +106,26 @@ describe('Grid Actions Panel', () => {
     expect(selectedRowsAPI.length).toEqual(0);
   });
 
-  it(`filters by ${testFilterColId} column, value: ${testFilterValue}`, () => {
-    // simulating the filter button click will not work here since our button hard codes the params ('make','Porsche') to the filter handler
-    wrapper.instance().filterHandler(testFilterColId, testFilterValue);
+  it(`filters "make" column by "Alfa Romeo"`, () => {
+    wrapper.instance().filterHandler("make", "Alfa Romeo");
 
-    // 1) querying the DOM
-    const filteredCells = wrapper.render().find(`.ag-center-cols-container .ag-cell[col-id="${testFilterColId}"]`)
+    // 1) querying JSDOM
+    const filteredCells = wrapper.render().find(`.ag-center-cols-container .ag-cell[col-id="make"]`)
     for (let i = 0; i < filteredCells.length; i++) {
       const cellText = filteredCells[i].children[0].data;
-      expect(cellText).toEqual(testFilterValue)
+      expect(cellText).toEqual("Alfa Romeo")
     }
     // 2) using the grid API
     agGridReact.api.forEachNodeAfterFilter(node => {
-      expect(node.data[testFilterColId]).toEqual(testFilterValue);
+      expect(node.data["make"]).toEqual("Alfa Romeo");
     });
   });
 
   it('clears filters', () => {
-    wrapper.instance().filterHandler(testFilterColId, testFilterValue);
+    wrapper.instance().filterHandler("make", "Alfa Romeo");
     wrapper.find('#removeFilters').simulate('click');
 
-    // 1) querying the DOM
+    // 1) querying JSDOM
     // grid displays a filter icon in columns that are currently filtering
     expect(wrapper.render().find('.ag-header-cell-filtered').length).toEqual(0);
     // 2) using the grid API
@@ -139,7 +137,7 @@ describe('Grid Actions Panel', () => {
     const sortedAscTestData = testData.sort((a, b) => a.price - b.price);
     wrapper.find('#sortByPriceAsc').simulate('click');
 
-    // 1) querying the DOM
+    // 1) querying JSDOM
     const gridRows = wrapper.render().find('.ag-center-cols-container .ag-row');
     for (let i = 0; i < gridRows.length; i++) {
       const cellText = gridRows[i].children[2].children[0].data;
@@ -156,7 +154,7 @@ describe('Grid Actions Panel', () => {
     const sortedDescTestData = testData.sort((a, b) => b.price - a.price);
     wrapper.find('#sortByPriceDesc').simulate('click');
 
-    // 1) querying the DOM
+    // 1) querying JSDOM
     const gridRows = wrapper.render().find('.ag-center-cols-container .ag-row');
     for (let i = 0; i < gridRows.length; i++) {
       const cellText = gridRows[i].children[2].children[0].data;
@@ -174,7 +172,7 @@ describe('Grid Actions Panel', () => {
 
     wrapper.find('#removeSort').simulate('click');
 
-    // 1) querying the DOM
+    // 1) querying JSDOM
     const columns = wrapper.render().find('.ag-header-cell');
     expect(wrapper.render().find('.ag-header-cell-sorted-none').length).toEqual(columns.length);
     // 2) using the grid API
