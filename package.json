@@ -8,7 +8,7 @@
     "jest-environment-jsdom-fourteen": "^1.0.1"
   },
   "dependencies": {
-    "ag-grid-community": "^23.2.0",
+    "ag-grid-community": "^32.0.1",
     "ag-grid-enterprise": "^23.2.0",
     "ag-grid-react": "^23.2.0",
     "react": "^16.13.1",
